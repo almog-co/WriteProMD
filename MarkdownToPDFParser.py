@@ -1,3 +1,5 @@
+import datetime
+
 class MarkdownToPDF:
     def __init__(self, markdown, pdf, default_font='Helvetica', default_font_size=12):
         self.markdown = markdown
@@ -62,9 +64,14 @@ class MarkdownToPDF:
             self.pdf.set_font(self.default_font, size=self.default_font_size)
 
     def replace_nearest_symbol(self, line, index, old, new):
-        for i in range(index, len(line) - len(old)):
-            if (line[i:i+len(old)] == old):
-                return line[:i] + new + line[i+len(old):]
+        left_index = line[:index].rfind(old)
+        right_index = line[index:].find(old)
+        if left_index != -1 and (right_index == -1 or index - left_index <= right_index):
+            return line[:left_index] + new + line[left_index + len(old):index + right_index]
+        elif right_index != -1:
+            return line[:index + right_index] + new + line[index + right_index + len(old):]
+        else:
+            return line
 
     def replace_paragraph_symbols(self, line, symbol, html):
         while symbol in line:
@@ -79,6 +86,9 @@ class MarkdownToPDF:
         line = self.replace_paragraph_symbols(line, '**', 'b')
         line = self.replace_paragraph_symbols(line, '__', 'u')
         line = self.replace_paragraph_symbols(line, '*', 'i')
+        
+        # In-line commands
+        line = self.parse_inline_command(line)
 
         self.pdf.write_html(line)
 
@@ -112,6 +122,14 @@ class MarkdownToPDF:
 
                 if file:
                     self.pdf.image(file, w=width, h=height)
+    
+    def parse_inline_command(self, line):
+        while '@' in line:
+            if '@date' in line:
+                date = datetime.datetime.now().strftime('%Y-%m-%d')
+                line = self.replace_nearest_symbol(line, 0, '@date', date)
+        
+        return line
 
 # def latex_to_image(latex):
 #     from matplotlib.figure import Figure
