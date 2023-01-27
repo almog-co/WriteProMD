@@ -128,6 +128,8 @@ class MarkdownToPDF:
             if '@date' in line:
                 date = datetime.datetime.now().strftime('%Y-%m-%d')
                 line = self.replace_nearest_symbol(line, 0, '@date', date)
+            if '@pagenumber' in line:
+                line = self.replace_nearest_symbol(line, 0, '@pagenumber', str(self.pdf.page_no()))
         
         return line
 
