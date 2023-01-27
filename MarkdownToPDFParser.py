@@ -90,6 +90,9 @@ class MarkdownToPDF:
         # In-line commands
         line = self.parse_inline_command(line)
 
+        # New line
+        line += '<br />'
+
         self.pdf.write_html(line)
 
     def parse_codeblock(self, lines):
@@ -109,7 +112,7 @@ class MarkdownToPDF:
         if line.startswith('@'):
             if line.startswith('@newpage'):
                 self.pdf.add_page()
-            if line.startswith('@image'):
+            elif line.startswith('@image'):
                 width, height, file = 0, 0, None
                 if '-' in line:
                     args = self.parse_command_args(line)
@@ -122,14 +125,20 @@ class MarkdownToPDF:
 
                 if file:
                     self.pdf.image(file, w=width, h=height)
+            else:
+                self.parse_paragraph(line)
     
     def parse_inline_command(self, line):
         while '@' in line:
             if '@date' in line:
                 date = datetime.datetime.now().strftime('%Y-%m-%d')
                 line = self.replace_nearest_symbol(line, 0, '@date', date)
-            if '@pagenumber' in line:
+                print(line)
+            elif '@pagenumber' in line:
                 line = self.replace_nearest_symbol(line, 0, '@pagenumber', str(self.pdf.page_no()))
+            else:
+                print(f'Unknown inline command in line: {line}')
+                break
         
         return line
 
