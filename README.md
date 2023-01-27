@@ -8,6 +8,30 @@ Designed to be user-friendly, WriteProMD utilizes a markdown-like syntax that is
 
 ## Usage
 
+
+### Text Features:
+
+Text Features:
+| Feature  | Syntax |
+| ------------- | ------------- |
+| Bold  | \*\*bold\*\*  |
+| Italics  | \*italics\*  |
+| Underline  | \_\_underline\_\_  |
+| Header 1  | \# Header 1  |
+| Header 2  | \#\# Header 2  |
+| Header 3  | \#\#\# Header 3  |
+| Quoteblock  | ```quoteblock  |
+| Quote  | \`quote  |
+
+Commands are special instructions to the program to execute a specific function such as inserting an image or creating a new page.
+
+### Commands:
+| Feature  | Syntax |
+| ------------- | ------------- |
+| Current Date  | \@date  |
+| Image  | \@image -file=location.png -width=400 -height=400  |
+| New Page  | \@newpage  |
+
 ## Contributions
 
 ## License
