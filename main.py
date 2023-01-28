@@ -1,8 +1,8 @@
 from MarkdownToPDFParser import MarkdownToPDF
-from fpdf import FPDF
+from PDF import PDF
 
 # Set up the PDF
-pdf = FPDF()
+pdf = PDF()
 pdf.add_page()
 pdf.set_font("Helvetica", size=12)
 
