@@ -1,18 +1,22 @@
 from fpdf import FPDF
 
 class PDF(FPDF):
+    def __init__(self, headers, footers):
+        self.headers = headers
+        self.footers = footers
+        super().__init__()
+
     def header(self):
-        # Rendering logo:
-        #self.image("../docs/fpdf2-logo.png", 10, 8, 33)
-        # Setting font: helvetica bold 15
-        self.set_font("helvetica", "B", 15)
-        self.cell(0, 10, "Title", align="L")
-        self.set_x(self.l_margin)
-        #self.cell(0, 10, "Title", align="C")
-        #self.set_x(self.l_margin)
-        self.cell(0, 10, "Title", align="R")
-        # Performing a line break:
-        self.ln(20)
+        self.set_font("helvetica", "", 12, )
+        self.set_text_color(128)
+        aligns = ["L", "C", "R"]
+        if (len(self.headers) > 0):
+            for i, header in enumerate(self.headers):
+                if (i > 2):
+                    break
+                self.cell(0, 10, header, align=aligns[i])
+                self.set_x(self.l_margin)
+            self.ln(15)
 
     def footer(self):
         # Position cursor at 1.5 cm from bottom:

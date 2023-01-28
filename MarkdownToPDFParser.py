@@ -90,10 +90,14 @@ class MarkdownToPDF:
         # In-line commands
         line = self.parse_inline_command(line)
 
-        # New line
-        line += '<br />'
+        # Ignore lines
+        if '@header' in line or '@footer' in line:
+            line = None
 
-        self.pdf.write_html(line)
+        # New line
+        if line is not None:
+            line += '<br />'
+            self.pdf.write_html(line)
 
     def parse_codeblock(self, lines):
         self.pdf.set_font('Courier', size=self.default_font_size)
@@ -136,6 +140,8 @@ class MarkdownToPDF:
                 print(line)
             elif '@pagenumber' in line:
                 line = self.replace_nearest_symbol(line, 0, '@pagenumber', str(self.pdf.page_no()))
+            elif '@header' in line or '@footer' in line:
+                break
             else:
                 print(f'Unknown inline command in line: {line}')
                 break
