@@ -33,7 +33,7 @@ class MarkdownToPDF:
                 latex = line[2:-2]
                 img = latex_to_image(latex)
                 self.pdf.ln(5)
-                self.pdf.image(img, x=100)
+                self.pdf.image(img, x=100, w=10)
                 self.pdf.ln(5)
             else:
                 self.parse_paragraph(line)
@@ -90,14 +90,21 @@ class MarkdownToPDF:
         # In-line commands
         line = self.parse_inline_command(line)
 
+        # Links
+        line = self.parse_links(line)
+
+        # Empty line
+        if (line.strip() == ''):
+            self.pdf.write_html('<br />')
+            return
+
         # Ignore lines
         if '@header' in line or '@footer' in line:
             line = None
 
         # New line
         if line is not None:
-            line += '<br />'
-            self.pdf.write_html(line)
+            self.pdf.write_html('<p line-height=1.25>' + line + '</p>')
 
     def parse_codeblock(self, lines):
         self.pdf.set_font('Courier', size=self.default_font_size)
@@ -146,6 +153,21 @@ class MarkdownToPDF:
                 print(f'Unknown inline command in line: {line}')
                 break
         
+        return line
+
+    def parse_links(self, line):
+        while '[' in line:
+            left_index = line.find('[')
+            right_index = line.find(']')
+            if right_index == -1:
+                print(f'Error parsing link in line: {line}')
+                break
+            link = line[left_index + 1:right_index]
+            link_text = link
+            if '|' in link:
+                link_text = link.split('|')[0]
+                link = link.split('|')[1]
+            line = line[:left_index] + f'<a href="{link}">{link_text}</a>' + line[right_index + 1:]
         return line
 
 # def latex_to_image(latex):
