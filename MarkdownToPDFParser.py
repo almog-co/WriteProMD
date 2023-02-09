@@ -1,11 +1,12 @@
 import datetime
+import os
 
 class MarkdownToPDF:
     def __init__(self, markdown, pdf, default_font='Helvetica', default_font_size=12):
         self.markdown = markdown
         self.pdf = pdf
-        self.default_font = 'Helvetica'
-        self.default_font_size = 12
+        self.font = default_font
+        self.font_size = default_font_size
         self.parse()
     
     def parse_block(self, lines, end_symbol, join_symbol):
@@ -33,22 +34,35 @@ class MarkdownToPDF:
                 latex = line[2:-2]
                 img = latex_to_image(latex)
                 self.pdf.ln(5)
-                self.pdf.image(img, x=100)
+                self.pdf.image(img, x=100, w=10)
                 self.pdf.ln(5)
+            # Add line break if number of empty lines is greater than 1
+            elif line.strip() == '':
+                newlines = 1
+                while (len(lines) > 0):
+                    line = lines[0].strip()
+                    if line.strip() != '':
+                        break
+                    newlines += 1
+                    lines.pop(0)
+                if newlines > 1:
+                    for i in range(newlines - 1):
+                        self.pdf.ln(5)
+
             else:
                 self.parse_paragraph(line)
     
     def parse_heading(self, line):
         if line.startswith('#'):
             if line.startswith('###'):
-                self.pdf.set_font(self.default_font, 'B', self.default_font_size)
+                self.pdf.set_font(self.font, 'B', self.font_size)
                 self.pdf.cell(0, 10, txt=line[3:].strip(), ln=1)
             elif line.startswith('##'):
-                self.pdf.set_font(self.default_font, 'B', self.default_font_size + 2)
+                self.pdf.set_font(self.font, 'B', self.font_size + 2)
                 self.pdf.cell(0, 10, txt=line[2:].strip(), ln=1)
             elif line.startswith('#'):
                 # Draw text
-                self.pdf.set_font(self.default_font, 'B', self.default_font_size + 8)
+                self.pdf.set_font(self.font, 'B', self.font_size + 8)
                 self.pdf.cell(0, 10, txt=line[1:].strip(), ln=1)
 
                 # Draw underline across page
@@ -61,7 +75,7 @@ class MarkdownToPDF:
             
             
             # Reset font
-            self.pdf.set_font(self.default_font, size=self.default_font_size)
+            self.pdf.set_font(self.font, size=self.font_size)
 
     def replace_nearest_symbol(self, line, index, old, new):
         left_index = line[:index].rfind(old)
@@ -80,7 +94,7 @@ class MarkdownToPDF:
         return line
     
     def parse_paragraph(self, line):
-        self.pdf.set_font(self.default_font, size=self.default_font_size)
+        self.pdf.set_font(self.font, size=self.font_size)
         
         # Text
         line = self.replace_paragraph_symbols(line, '**', 'b')
@@ -90,22 +104,32 @@ class MarkdownToPDF:
         # In-line commands
         line = self.parse_inline_command(line)
 
-        # New line
-        line += '<br />'
+        # Links
+        line = self.parse_links(line)
 
-        self.pdf.write_html(line)
+        # Empty line
+        if (line.strip() == ''):
+            return
+
+        # Ignore lines
+        if '@header' in line or '@footer' in line:
+            line = None
+
+        # New line
+        if line is not None:
+            self.pdf.write_html('<p line-height=1.25>' + line + '</p>')
 
     def parse_codeblock(self, lines):
-        self.pdf.set_font('Courier', size=self.default_font_size)
+        self.pdf.set_font('Courier', size=self.font_size)
         self.pdf.write_html(
             f'<blockquote>{lines}</blockquote>'
         )
     
     def parse_command_args(self, line):
         args = {}
-        # Format is @command-arg1=value1-arg2=value2
-        for arg in line.split('-')[1:]:
-            args[arg.split('=')[0].strip()] = arg.split('=')[1].strip()
+        # Format is @command -arg1=value1 -arg2=value2
+        for arg in line.split(' ')[1:]:
+            args[arg.split('=')[0].strip('-')] = arg.split('=')[1].strip('-')
         return args
 
     def parse_command(self, line):
@@ -122,9 +146,41 @@ class MarkdownToPDF:
                         height = int(args['height'])
                     if 'file' in args:
                         file = args['file']
+                        if not os.path.exists(file):
+                            print(f'File {file} does not exist')
+                            return
 
                 if file:
                     self.pdf.image(file, w=width, h=height)
+            elif line.startswith('@setsize'):
+                font_size = None
+                try:
+                    font_size = int(line.split(' ')[1].strip())
+                    if (not font_size or font_size < 4 or font_size > 72):
+                        raise ValueError
+                except:
+                    print('Invalid use of @setsize. Use @setsize <font size>')
+                    return
+                
+                self.font_size = font_size
+                self.pdf.set_font(self.font, size=font_size)
+            elif line.startswith('@setfont'):
+                font = None
+                try:
+                    font = line.split(' ')[1].strip()
+                    if (not font):
+                        raise ValueError(f'Invalid use of @setfont. Use @setfont <font name>')
+                    if (font not in self.pdf.defined_fonts):
+                        raise ValueError(f'Font {font} does not exist')
+                except ValueError as e:
+                    print(e)
+                    return
+                except:
+                    print('Invalid use of @setfont. Use @setfont <font name>')
+                    return
+                
+                self.font = font
+                self.pdf.set_font(font, size=self.font_size)
             else:
                 self.parse_paragraph(line)
     
@@ -136,10 +192,27 @@ class MarkdownToPDF:
                 print(line)
             elif '@pagenumber' in line:
                 line = self.replace_nearest_symbol(line, 0, '@pagenumber', str(self.pdf.page_no()))
+            elif '@header' in line or '@footer' in line:
+                break
             else:
                 print(f'Unknown inline command in line: {line}')
                 break
         
+        return line
+
+    def parse_links(self, line):
+        while '[' in line:
+            left_index = line.find('[')
+            right_index = line.find(']')
+            if right_index == -1:
+                print(f'Error parsing link in line: {line}')
+                break
+            link = line[left_index + 1:right_index]
+            link_text = link
+            if '|' in link:
+                link_text = link.split('|')[0]
+                link = link.split('|')[1]
+            line = line[:left_index] + f'<a href="{link}">{link_text}</a>' + line[right_index + 1:]
         return line
 
 # def latex_to_image(latex):
