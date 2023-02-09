@@ -1,11 +1,12 @@
 from fpdf import FPDF
 
 class PDF(FPDF):
-    def __init__(self, headers, footers):
+    def __init__(self, headers, footers, layout=None):
         self.headers = headers
         self.footers = footers
         self.defined_fonts = ['Helvetica', 'Times', 'Arial', 'Courier', 'Symbol', 'ZapfDingbats']
-        super().__init__(format="letter", unit="mm", orientation="P")
+        layout = layout if layout else "Letter"
+        super().__init__(format=layout, unit="mm", orientation="P")
 
     def header(self):
         self.set_font("helvetica", "", 12, )

@@ -53,13 +53,30 @@ try:
 
         # Search for @header commands
         headers = []
-        for line in markdown.splitlines():
+        layout = None
+        lines_to_remove = []
+        for i, line in enumerate(markdown.splitlines()):
             if line.startswith('@header'):
                 headers = line[8:].strip().split(',')
-                break
-            
+                lines_to_remove.append(i)
+            elif line.startswith('@pagelayout'):
+                try: 
+                    layout = line.split(' ')[1].strip()
+                    lines_to_remove.append(i)
+                    if (layout not in ['Legal', 'Letter', 'A4', 'A3', 'A5', 'A6', 'B5', 'Executive', 'Folio', 'Ledger', 'Tabloid']):
+                        print('Invalid layout')
+                        layout = None
+                except:
+                    print('Invalid layout')
+        
+        # Remove the lines
+        lines = markdown.splitlines()
+        for i, line in enumerate(lines_to_remove):
+            lines.pop(line - i)
+        markdown = '\n'.join(lines)
+
         # Set up the PDF
-        pdf = PDF(headers, footers=['test'])
+        pdf = PDF(headers, footers=['test'], layout=layout)
         pdf.add_page()
         pdf.set_font("Helvetica", size=12)
 
