@@ -152,31 +152,31 @@ class MarkdownToPDF:
 
                 if file:
                     self.pdf.image(file, w=width, h=height)
-            elif line.startswith('@setsize'):
+            elif line.startswith('@size'):
                 font_size = None
                 try:
                     font_size = int(line.split(' ')[1].strip())
                     if (not font_size or font_size < 4 or font_size > 72):
                         raise ValueError
                 except:
-                    print('Invalid use of @setsize. Use @setsize <font size>')
+                    print('Invalid use of @size. Use @size <font size>')
                     return
                 
                 self.font_size = font_size
                 self.pdf.set_font(self.font, size=font_size)
-            elif line.startswith('@setfont'):
+            elif line.startswith('@font'):
                 font = None
                 try:
                     font = line.split(' ')[1].strip()
                     if (not font):
-                        raise ValueError(f'Invalid use of @setfont. Use @setfont <font name>')
+                        raise ValueError(f'Invalid use of @font. Use @font <font name>')
                     if (font not in self.pdf.defined_fonts):
                         raise ValueError(f'Font {font} does not exist')
                 except ValueError as e:
                     print(e)
                     return
                 except:
-                    print('Invalid use of @setfont. Use @setfont <font name>')
+                    print('Invalid use of @font. Use @font <font name>')
                     return
                 
                 self.font = font
