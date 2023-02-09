@@ -26,11 +26,17 @@ Text Features:
 Commands are special instructions to the program to execute a specific function such as inserting an image or creating a new page.
 
 ### Commands:
-| Feature  | Syntax |
-| ------------- | ------------- |
-| Current Date  | \@date  |
-| Image  | \@image -file=location.png -width=400 -height=400  |
-| New Page  | \@newpage  |
+| Feature  | Syntax | Possible Values | 
+| ------------- | ------------- | ------------- |
+| Current Date  | \@date  | N/A |
+| Current Page Number | \@pagenumber | N/A |
+| Image  | \@image -file=location.png -width=400 -height=400  | N/A |
+| New Page  | \@newpage  | N/A |
+| Header  | \@header one, two, three  | N/A |
+| Layout | \@pagelayout Letter | Legal, Letter, A4, A3, A5, A6, B5, Executive, Folio, Ledger, Tabloid
+| Change Font | \@setfont Times | Helvetica, Times, Arial, Courier, Symbol, ZapfDingbats |
+| Change Font Size | \@setsize 12 | 4 to 72 |
+
 
 ## Contributions
 
