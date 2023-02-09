@@ -1,11 +1,12 @@
 import datetime
+import os
 
 class MarkdownToPDF:
     def __init__(self, markdown, pdf, default_font='Helvetica', default_font_size=12):
         self.markdown = markdown
         self.pdf = pdf
-        self.default_font = 'Helvetica'
-        self.default_font_size = 12
+        self.font = default_font
+        self.font_size = default_font_size
         self.parse()
     
     def parse_block(self, lines, end_symbol, join_symbol):
@@ -41,14 +42,14 @@ class MarkdownToPDF:
     def parse_heading(self, line):
         if line.startswith('#'):
             if line.startswith('###'):
-                self.pdf.set_font(self.default_font, 'B', self.default_font_size)
+                self.pdf.set_font(self.font, 'B', self.font_size)
                 self.pdf.cell(0, 10, txt=line[3:].strip(), ln=1)
             elif line.startswith('##'):
-                self.pdf.set_font(self.default_font, 'B', self.default_font_size + 2)
+                self.pdf.set_font(self.font, 'B', self.font_size + 2)
                 self.pdf.cell(0, 10, txt=line[2:].strip(), ln=1)
             elif line.startswith('#'):
                 # Draw text
-                self.pdf.set_font(self.default_font, 'B', self.default_font_size + 8)
+                self.pdf.set_font(self.font, 'B', self.font_size + 8)
                 self.pdf.cell(0, 10, txt=line[1:].strip(), ln=1)
 
                 # Draw underline across page
@@ -61,7 +62,7 @@ class MarkdownToPDF:
             
             
             # Reset font
-            self.pdf.set_font(self.default_font, size=self.default_font_size)
+            self.pdf.set_font(self.font, size=self.font_size)
 
     def replace_nearest_symbol(self, line, index, old, new):
         left_index = line[:index].rfind(old)
@@ -80,7 +81,7 @@ class MarkdownToPDF:
         return line
     
     def parse_paragraph(self, line):
-        self.pdf.set_font(self.default_font, size=self.default_font_size)
+        self.pdf.set_font(self.font, size=self.font_size)
         
         # Text
         line = self.replace_paragraph_symbols(line, '**', 'b')
@@ -107,7 +108,7 @@ class MarkdownToPDF:
             self.pdf.write_html('<p line-height=1.25>' + line + '</p>')
 
     def parse_codeblock(self, lines):
-        self.pdf.set_font('Courier', size=self.default_font_size)
+        self.pdf.set_font('Courier', size=self.font_size)
         self.pdf.write_html(
             f'<blockquote>{lines}</blockquote>'
         )
@@ -133,9 +134,41 @@ class MarkdownToPDF:
                         height = int(args['height'])
                     if 'file' in args:
                         file = args['file']
+                        if not os.path.exists(file):
+                            print(f'File {file} does not exist')
+                            return
 
                 if file:
                     self.pdf.image(file, w=width, h=height)
+            elif line.startswith('@setsize'):
+                font_size = None
+                try:
+                    font_size = int(line.split(' ')[1].strip())
+                    if (not font_size or font_size < 4 or font_size > 72):
+                        raise ValueError
+                except:
+                    print('Invalid use of @setsize. Use @setsize <font size>')
+                    return
+                
+                self.font_size = font_size
+                self.pdf.set_font(self.font, size=font_size)
+            elif line.startswith('@setfont'):
+                font = None
+                try:
+                    font = line.split(' ')[1].strip()
+                    if (not font):
+                        raise ValueError(f'Invalid use of @setfont. Use @setfont <font name>')
+                    if (font not in self.pdf.defined_fonts):
+                        raise ValueError(f'Font {font} does not exist')
+                except ValueError as e:
+                    print(e)
+                    return
+                except:
+                    print('Invalid use of @setfont. Use @setfont <font name>')
+                    return
+                
+                self.font = font
+                self.pdf.set_font(font, size=self.font_size)
             else:
                 self.parse_paragraph(line)
     
