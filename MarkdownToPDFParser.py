@@ -36,6 +36,19 @@ class MarkdownToPDF:
                 self.pdf.ln(5)
                 self.pdf.image(img, x=100, w=10)
                 self.pdf.ln(5)
+            # Add line break if number of empty lines is greater than 1
+            elif line.strip() == '':
+                newlines = 1
+                while (len(lines) > 0):
+                    line = lines[0].strip()
+                    if line.strip() != '':
+                        break
+                    newlines += 1
+                    lines.pop(0)
+                if newlines > 1:
+                    for i in range(newlines - 1):
+                        self.pdf.ln(5)
+
             else:
                 self.parse_paragraph(line)
     
@@ -96,7 +109,6 @@ class MarkdownToPDF:
 
         # Empty line
         if (line.strip() == ''):
-            self.pdf.write_html('<br />')
             return
 
         # Ignore lines
