@@ -114,9 +114,9 @@ class MarkdownToPDF:
     
     def parse_command_args(self, line):
         args = {}
-        # Format is @command-arg1=value1-arg2=value2
-        for arg in line.split('-')[1:]:
-            args[arg.split('=')[0].strip()] = arg.split('=')[1].strip()
+        # Format is @command -arg1=value1 -arg2=value2
+        for arg in line.split(' ')[1:]:
+            args[arg.split('=')[0].strip('-')] = arg.split('=')[1].strip('-')
         return args
 
     def parse_command(self, line):
