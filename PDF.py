@@ -5,7 +5,7 @@ class PDF(FPDF):
         self.headers = headers
         self.footers = footers
         self.defined_fonts = ['Helvetica', 'Times', 'Arial', 'Courier', 'Symbol', 'ZapfDingbats']
-        super().__init__()
+        super().__init__(format="letter", unit="mm", orientation="P")
 
     def header(self):
         self.set_font("helvetica", "", 12, )
