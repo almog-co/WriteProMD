@@ -5,6 +5,11 @@ from PDF import PDF
 import sys
 import os
 import time
+import argparse
+
+#####################
+# Helper functions
+#####################
 
 def file_changed_since(time, filename):
     return os.stat(filename).st_mtime > time
@@ -13,56 +18,60 @@ def watch_file(filename):
     currTime = os.stat(filename).st_mtime
     while (not file_changed_since(currTime, filename)):
         time.sleep(0.1)
-       
-if (len(sys.argv) < 2):
-    print("Usage: python main.py <markdown file> [-w]")
+
+#####################
+# Main
+#####################
+
+# Parse the arguments
+parser = argparse.ArgumentParser(description='Compile a markdown-like file to a PDF.')
+parser.add_argument('filename', metavar='filename', type=str, nargs=1, help='the markdown file to compile')
+parser.add_argument('-w', '--watch', action='store_true', help='watch the file for changes')
+
+args = parser.parse_args()
+
+WATCH = args.watch
+FILENAME = args.filename[0]
+
+# Check if the file exists
+if (not os.path.exists(FILENAME)):
+    print("File does not exist: " + FILENAME)
     sys.exit(1)
 
-WATCH = False
-filename = None
+# Watch the file
+try:
+    while(True):
+        # Open the markdown file
+        markdown = open(FILENAME, 'r')
 
-if (len(sys.argv) == 2):
-    filename = sys.argv[1]
-else:
-    for (i, arg) in enumerate(sys.argv):
-        if (i == 0):
-            continue
-        if (arg == '-w'):
-            WATCH = True
-        else:
-            filename = arg
-once = True
-while (WATCH or once):
-    once = False
+        if (markdown == None):
+            print("Could not open file: " + FILENAME)
+            sys.exit(1)
 
-    # Open the markdown file
-    markdown = open(filename, 'r')
+        # Read the markdown file
+        markdown = markdown.read()
 
-    if (markdown == None):
-        print("Could not open file: " + filename)
-        sys.exit(1)
+        # Search for @header commands
+        headers = []
+        for line in markdown.splitlines():
+            if line.startswith('@header'):
+                headers = line[8:].strip().split(',')
+                break
+            
+        # Set up the PDF
+        pdf = PDF(headers, footers=['test'])
+        pdf.add_page()
+        pdf.set_font("Helvetica", size=12)
 
-    # Read the markdown file
-    markdown = markdown.read()
+        # Parse the markdown file
+        parser = MarkdownToPDF(markdown, pdf)
 
-    # Search for @header commands
-    headers = []
-    for line in markdown.splitlines():
-        if line.startswith('@header'):
-            headers = line[8:].strip().split(',')
+        # Save the PDF
+        pdf.output(FILENAME.replace('.md', '.pdf'))
+
+        # Exit if we don't want to watch the file
+        if (not WATCH):
             break
-        
-    # Set up the PDF
-    pdf = PDF(headers, footers=['test'])
-    pdf.add_page()
-    pdf.set_font("Helvetica", size=12)
-
-    # Parse the markdown file
-    parser = MarkdownToPDF(markdown, pdf)
-
-    # Save the PDF
-    pdf.output(filename.replace('.md', '.pdf'))
-
-    # Wait for the file to change
-    if (WATCH):
-        watch_file(filename)
+        watch_file(FILENAME)
+except KeyboardInterrupt:
+    pass
