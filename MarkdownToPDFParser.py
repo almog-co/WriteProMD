@@ -87,7 +87,7 @@ class MarkdownToPDF:
         else:
             return line
 
-    def replace_paragraph_symbols(self, line, symbol, html):
+    def replace_paragraph_symbols_html(self, line, symbol, html):
         while symbol in line:
             line = self.replace_nearest_symbol(line, 0, symbol, f'<{html}>')
             line = self.replace_nearest_symbol(line, 0, symbol, f'</{html}>')
@@ -97,12 +97,12 @@ class MarkdownToPDF:
         self.pdf.set_font(self.font, size=self.font_size)
         
         # Text
-        line = self.replace_paragraph_symbols(line, '**', 'b')
-        line = self.replace_paragraph_symbols(line, '__', 'u')
-        line = self.replace_paragraph_symbols(line, '*', 'i')
+        # line = self.replace_paragraph_symbols_html(line, '**', 'b')
+        # line = self.replace_paragraph_symbols_html(line, '__', 'u')
+        # line = self.replace_paragraph_symbols_html(line, '*', 'i')
         
         # In-line commands
-        line = self.parse_inline_command(line)
+        line, alignment = self.parse_inline_command(line)
 
         # Links
         line = self.parse_links(line)
@@ -117,7 +117,8 @@ class MarkdownToPDF:
 
         # New line
         if line is not None:
-            self.pdf.write_html('<p line-height=1.25>' + line + '</p>')
+            self.pdf.cell(0, 5, txt=line, ln=1, align=alignment, markdown=True)
+                    
 
     def parse_codeblock(self, lines):
         self.pdf.set_font('Courier', size=self.font_size)
@@ -196,11 +197,21 @@ class MarkdownToPDF:
                 line = self.replace_nearest_symbol(line, 0, '@pagenumber', str(self.pdf.page_no()))
             elif '@header' in line or '@footer' in line:
                 break
+            elif ('@center' in line or '@right' in line or '@left' in line):
+                alignment = 'C'
+                if '@right' in line:
+                    alignment = 'R'
+                elif '@left' in line:
+                    alignment = 'L'
+                line = self.replace_nearest_symbol(line, 0, '@center ', '')
+                line = self.replace_nearest_symbol(line, 0, '@right ', '')
+                line = self.replace_nearest_symbol(line, 0, '@left ', '')
+                return line, alignment
             else:
                 print(f'Unknown inline command in line: {line}')
                 break
         
-        return line
+        return line, 'L'
 
     def parse_links(self, line):
         while '[' in line:
