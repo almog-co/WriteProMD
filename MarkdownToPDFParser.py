@@ -66,9 +66,9 @@ class MarkdownToPDF:
                 self.pdf.cell(0, 10, txt=line[1:].strip(), ln=1)
 
                 # Draw underline across page
-                self.pdf.set_line_width(0.5)
+                self.pdf.set_line_width(0.3)
                 self.pdf.set_draw_color(r=0, g=0, b=0)
-                self.pdf.line(x1=10, y1=self.pdf.get_y() + 2, x2=200, y2=self.pdf.get_y() + 2)
+                self.pdf.line(x1=10, y1=self.pdf.get_y() + 1, x2=205, y2=self.pdf.get_y() + 1)
                 
                 # Add line break
                 self.pdf.ln(5)
