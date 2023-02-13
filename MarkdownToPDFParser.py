@@ -117,7 +117,7 @@ class MarkdownToPDF:
 
         # New line
         if line is not None:
-            self.pdf.cell(0, 5, txt=line, ln=1, align=alignment, markdown=True)
+            self.pdf.multi_cell(0, self.font_size * 0.5, txt=line, align=alignment, ln=1)
                     
 
     def parse_codeblock(self, lines):
