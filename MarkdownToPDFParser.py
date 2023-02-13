@@ -26,7 +26,7 @@ class MarkdownToPDF:
             if line.startswith('#'):
                 self.parse_heading(line)
             elif line.startswith('```'):
-                codeblock = self.parse_block(lines, '```', '<br />')
+                codeblock = self.parse_block(lines, '```', '\n')
                 self.parse_codeblock(codeblock)
             elif line.startswith('@'):
                 self.parse_command(line)
@@ -121,9 +121,11 @@ class MarkdownToPDF:
 
     def parse_codeblock(self, lines):
         self.pdf.set_font('Courier', size=self.font_size)
-        self.pdf.write_html(
-            f'<blockquote>{lines}</blockquote>'
-        )
+        for line in lines.split('\n'):
+            self.pdf.cell(0, 5, txt=line, ln=1)
+
+
+
     
     def parse_command_args(self, line):
         args = {}
