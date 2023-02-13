@@ -9,7 +9,7 @@ class PDF(FPDF):
         super().__init__(format=layout, unit="mm", orientation="P")
 
     def header(self):
-        self.set_font("helvetica", "", 12, )
+        self.set_font("helvetica", "", 11, )
         self.set_text_color(128)
         aligns = ["L", "C", "R"]
         if (len(self.headers) > 0):
@@ -24,6 +24,6 @@ class PDF(FPDF):
         # Position cursor at 1.5 cm from bottom:
         self.set_y(-15)
         # Setting font: helvetica italic 8
-        self.set_font("helvetica", "I", 8)
+        self.set_font("helvetica", "", 8)
         # Printing page number:
         self.cell(0, 10, f"Page {self.page_no()} / {{nb}}", align="C")
