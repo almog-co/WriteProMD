@@ -31,7 +31,7 @@ class MarkdownToPDF:
 
         # set up table
         
-        line_height = self.font_size
+        line_height = self.font_size * 0.8
         col_width = self.pdf.epw / len(headers)
         #self.pdf.ln(line_height)
         #self.pdf.set_left_margin(self.pdf.l_margin + col_width * len(headers))
@@ -164,6 +164,7 @@ class MarkdownToPDF:
         self.pdf.set_font('Courier', size=self.font_size)
         for line in lines.split('\n'):
             self.pdf.cell(0, 5, txt=line, ln=1)
+        self.pdf.set_font(self.font, size=self.font_size)
 
     
     def parse_command_args(self, line):
