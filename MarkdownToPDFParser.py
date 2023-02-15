@@ -17,6 +17,36 @@ class MarkdownToPDF:
                 break
             block.append(line)
         return join_symbol.join(block)
+
+    def parse_table(self, table):
+        # headers
+        headers = [x.strip() for x in table[0].split('|')]
+        headers = headers[1:-1]
+
+        # row
+        data = []
+        for line in table[2:]:
+            data.append([x.strip() for x in line.split('|')][1:-1])
+        #print(data)
+
+        # set up table
+        
+        line_height = self.font_size
+        col_width = self.pdf.epw / len(headers)
+        #self.pdf.ln(line_height)
+        #self.pdf.set_left_margin(self.pdf.l_margin + col_width * len(headers))
+        for i, header in enumerate(headers):
+            self.pdf.multi_cell(col_width, line_height, header, border=1,
+            new_x="RIGHT", new_y="TOP", max_line_height=self.font_size, markdown=True)
+        self.pdf.ln(line_height)
+        for row in data:
+            for datum in row:
+                self.pdf.multi_cell(col_width, line_height, datum, border=1,
+                new_x="RIGHT", new_y="TOP", max_line_height=self.font_size)
+            self.pdf.ln(line_height)
+        #self.pdf.ln(line_height)
+        #self.pdf.set_left_margin(self.pdf.l_margin - col_width * len(headers))
+
     
     def parse(self):
         lines = self.markdown.splitlines()
@@ -36,6 +66,16 @@ class MarkdownToPDF:
                 self.pdf.ln(5)
                 self.pdf.image(img, x=100, w=10)
                 self.pdf.ln(5)
+            elif line.startswith('| '):
+                table = [line]
+                while(len(lines) > 0):
+                    line = lines.pop(0)
+                    if line.startswith('| '):
+                        table.append(line)
+                    else:
+                        lines.insert(0, line)
+                        break
+                self.parse_table(table)
             # Add line break if number of empty lines is greater than 1
             elif line.strip() == '':
                 newlines = 1
@@ -124,8 +164,6 @@ class MarkdownToPDF:
         self.pdf.set_font('Courier', size=self.font_size)
         for line in lines.split('\n'):
             self.pdf.cell(0, 5, txt=line, ln=1)
-
-
 
     
     def parse_command_args(self, line):
