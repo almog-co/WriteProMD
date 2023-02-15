@@ -44,7 +44,7 @@ class MarkdownToPDF:
                 self.pdf.multi_cell(col_width, line_height, datum, border=1,
                 new_x="RIGHT", new_y="TOP", max_line_height=self.font_size)
             self.pdf.ln(line_height)
-        #self.pdf.ln(line_height)
+        #self.pdf.ln(5)
         #self.pdf.set_left_margin(self.pdf.l_margin - col_width * len(headers))
 
     
@@ -157,7 +157,7 @@ class MarkdownToPDF:
 
         # New line
         if line is not None:
-            self.pdf.multi_cell(0, self.font_size * 0.5, txt=line, align=alignment, ln=1)
+            self.pdf.multi_cell(0, self.font_size * 0.5, txt=line, align=alignment, ln=1, markdown=True)
                     
 
     def parse_codeblock(self, lines):
