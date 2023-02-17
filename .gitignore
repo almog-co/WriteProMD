@@ -2,3 +2,6 @@ __pycache__/
 test.md
 *.pdf
 imgs/
+build/
+dist/
+*.egg-info/
