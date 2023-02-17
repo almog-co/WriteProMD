@@ -5,6 +5,8 @@ WriteProMD is a powerful, versatile application that enables users to easily con
 Designed to be user-friendly, WriteProMD utilizes a markdown-like syntax that is intuitive and easy to learn. Whether you are a student, researcher, professional, or anyone else in need of a streamlined, efficient way to create PDFs from markdown documents, Markdown2PDF has you covered.
 
 ## Installation
+Install with PIP:
+`pip install WriteProMD`
 
 ## Usage
 
